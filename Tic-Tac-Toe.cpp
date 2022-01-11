@@ -10,7 +10,17 @@ using namespace std;
 #define HM 'X'
 
 void showBoard(char board[][SIDE]){
-    printf("\n\n\t\t\t %c | %c | %c\n\t\t\t---+---+---\n\t\t\t %c | %c | %c\n\t\t\t---+---+---\n\t\t\t %c | %c | %c\n\n", board[0][0], board[0][1],board[0][2], board[1][0], board[1][1], board[1][2], board[2][0], board[2][1], board[2][2]);
+    printf("\n\n");
+    for(int i=0;i<SIDE;i++){
+        printf("\t\t\t");
+        for(int j=0;j<SIDE;j++){
+            printf(" %c ",board[i][j]);
+            if(j!=SIDE-1)printf("|");
+        }
+        if(i!=SIDE-1)printf("\n\t\t\t---+---+---\n");
+    }
+    printf("\n\n");
+    //printf("\n\n\t\t\t %c | %c | %c\n\t\t\t---+---+---\n\t\t\t %c | %c | %c\n\t\t\t---+---+---\n\t\t\t %c | %c | %c\n\n", board[0][0], board[0][1],board[0][2], board[1][0], board[1][1], board[1][2], board[2][0], board[2][1], board[2][2]);
 }
 
 void showInstructions(){
@@ -19,7 +29,7 @@ void showInstructions(){
     printf("-\t-\t-\t-\t-\t-\t-\t-\t-\t-\t-\n\n");
 }
 
-void initialise(char board[][SIDE],int moves[]){
+void initialise(char board[][SIDE], vector <int> &moves){
     srand(time(NULL));
 
     for(int i=0;i<SIDE;i++){
@@ -31,7 +41,7 @@ void initialise(char board[][SIDE],int moves[]){
     for(int i=0;i<SIDE*SIDE;i++)
         moves[i]=i;
 
-    random_shuffle(moves,moves+SIDE*SIDE);
+    random_shuffle(moves.begin(),moves.end());
 
     return;
 }
@@ -94,44 +104,74 @@ void playTicTacToe(int whoseTurn)
 {
     char board[SIDE][SIDE];
       
-    int moves[SIDE*SIDE];
+    vector <int> moves(SIDE*SIDE);
+
+    bool checkarr[SIDE*SIDE];
 
     initialise(board, moves);
     
     showInstructions();
       
-    int moveIndex = 0, x, y;
+    int x, y;
+
+    for(int i=0;i<SIDE*SIDE;i++){
+        checkarr[i]=1;
+    }
     
     while (gameOver(board) == false && 
-            moveIndex != SIDE*SIDE)
+            moves.empty() == false)
     {
         if (whoseTurn == COMPUTER)
-        {
-            x = moves[moveIndex] / SIDE;
-            y = moves[moveIndex] % SIDE;
+        {   
+            int m=moves.back();
+            while(checkarr[m]==0){
+                cout<<moves.back();
+                moves.pop_back();
+                m=moves.back();
+            }
+            if(moves.empty()){
+                cout<<"error2";
+                return;
+                }
+            x = m / SIDE;
+            y = m % SIDE;
             board[x][y] = CM;
             printf("COMPUTER has put a %c in cell %d\n",
-                    CM, moves[moveIndex]+1);
+                    CM, m);
             showBoard(board);
-            moveIndex ++;
+            checkarr[m]=0;
+            moves.pop_back();
             whoseTurn = HUMAN;
         }
           
         else if (whoseTurn == HUMAN)
         {
-            x = moves[moveIndex] / SIDE;
-            y = moves[moveIndex] % SIDE;
+            int a,c=0;
+            cout<<"Enter the number corresponding to the move you want to make.\n";
+            cin>>a;
+            while(checkarr[a-1]==0){
+                if(c>3){
+                    cout<<"You have used up all the retries, kindly start over";
+                    return;
+                }
+                cout<<"The entered position is already taken please reenter the new value: \n";
+                cin>>a;
+                c++;
+            }
+            x = (a-1) / SIDE;
+            y = (a-1) % SIDE;
             board[x][y] = HM;
             printf ("HUMAN has put a %c in cell %d\n",
-                    HM, moves[moveIndex]+1);
+                    HM, a);
             showBoard(board);
-            moveIndex ++;
+            checkarr[a-1]=0;
             whoseTurn = COMPUTER;
         }
+        //if(moves.empty())cout<<"moves empty";
     }
   
     if (gameOver(board) == false && 
-            moveIndex == SIDE * SIDE)
+            moves.empty())
         printf("It's a draw\n");
     else
     {
